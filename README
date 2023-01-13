@@ -1,0 +1,68 @@
+########### 06-12-2022 #####################
+
+EIGENSCHAPPEN VAN DE DATA:
+- emails
+- ongestructureerde tekst
+- met of zonder bijlagen: word, pdf, emails
+- met of zonder aanvraagbeschrijving, kunnen ook wat andere zaken in zitten
+- enigzins gestructureerd met: 
+   - veelvoorkomende termen: "%eisen%", "%omschrijving", "%werkzaamheden", 
+    "%opdracht"
+   - subject bevat vaak werkgever
+   - standplaats wordt vaak genoemd
+   - omschrijving van wat de werkgever/afdeling bij die werkgever doet
+  
+WEGEN OM TE BEWANDELEN
+1) proberen om alle tekst plat te slaan
+  a) Tekst uit email vissen (dat lukt)
+  b) Tekst uit bijlagen vissen (dat lukt nog niet)
+    - methode hebben om programmatisch bijlagen op centrale plek op te slaan
+    - methode hebben om dan verschillende bestandstypen in te lezen en toe te 
+      voegen aan bestaande set. 
+    - methode hebben om ingelezen data te koppelen aan email waar het van 
+      afkomstig is. 
+2) pakken wat ik eenvoudig pakken kan, dus voor nu alleen email... later misschien ook de bijlagen
+
+WAT IS HET DOEL?
+1) categorisering van emails
+2) gevraagde skills rangschikken, tellen
+3) werkgevers/afdelingen in kaart brengen
+4) Tussenpersonen
+5) verandering door de tijd heen
+6) monitor functie: verschuift de markt?
+7) model om een kandidaat aan een opdracht te koppelen
+8) trends ontdekken
+9) meest spannende: aan chatGPT voeren en het tekstmodel er wat van laten maken. 
+   Maar hoe precies?
+    a) Keyword classifier! zie voor een voorbeeld: https://www.youtube.com/watch?v=zU6BEpLg1vc
+     Is alleen niet zo geschikt voor hele lappen tekst. 
+     
+     Dit is miss een andere optie: https://www.youtube.com/watch?v=fflkFtIwQXo
+   
+########### 04-01-2023 #####################
+
+Ik ben een klein stukje verder met ChatGPT. Ik kan in de ChatGPT web app best wel goed 
+benodigde data elementen uit een sample email halen. Werkt vrij goed. Nu is de vraag: hoe kan ik dit
+programmatisch doen?
+
+Paar packages in R die waarschijnlijk iets in die richting zouden moeten kunnen doen:
+{rgpt3}
+{openai}
+of gewoon via een api call, zelf kloten via {httr}. 
+{gpttools}??
+
+Zie voor mijn voortgang here::here("GPT_packages_testing.R")
+NB Python is meer "native" ondersteud door openai, misschien daar ook naar kijken...
+
+Wat ik tot nu toe heb geleerd:
+- methode/endpoint is waarschijnlijk "completions"
+- ik heb nu de davinci engine gebruikt, maar curie engine schijnt ook goed te zijn, en minder tokens benodigd. 
+- ik wil meerdere vragen over elke email stellen (of het een job posting is, organisatie, rol, eisen, job description, start datum), maar wil niet bij iedere call de hele tekst meesturen. Kan dat efficienter, en dus goedkoper?
+- ik moet nadenken over hoe ik uitkomsten zinnig kan verifieën. 
+
+########### 04-01-2023 #####################
+
+Ik lijk weer wat verder gekomen te zijn: ik gebruik de GPT functie om een tekst samen te vatten in verschillende 'bakjes': zie: https://beta.openai.com/playground/p/default-parse-data
+
+Daarnaast heb ik de API aan het werk gekregen via {httr} (eerst geëxpirementeerd met Insomnia). Heb daarna de een functie aan het werk gekregen en deels gpt3 kunnen gebruiken voor het categoriseren van de emailteksten. :)
+
