@@ -1,7 +1,7 @@
 library(tidyverse)
 library(httr)
 
-source(here::here("code", "Get_email_corpus.R"))
+#source(here::here("code", "Get_email_corpus.R"))
 
 # Structure data with GPT-3 -----------------------------------------------
 
