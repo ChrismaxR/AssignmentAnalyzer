@@ -16,7 +16,11 @@ lables <- gm_labels() |>
 # I find that the label_id = "Label_5096562256871952832" when looking at the available ids
 
 # Get the threads contained within "Opportunities" label:
-threads <- gm_threads(label_ids = "Label_5096562256871952832") 
+# threads <- gm_threads(label_ids = "Label_5096562256871952832") 
+
+# Get the threads contained within "AssignmentAnalyzer" label:
+# This is the label I use for Gerrie's emails.
+threads <- gm_threads(label_ids = "Label_8") 
 
 # Get the id's of these threads:
 thread_ids <- gm_id(threads)
