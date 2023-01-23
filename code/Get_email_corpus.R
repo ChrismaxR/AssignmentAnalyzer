@@ -28,7 +28,8 @@ thread_ids <- gm_id(threads)
 # Get the messages within threads:
 threads_expanded <- map(
   thread_ids, 
-  gm_thread
+  gm_thread, 
+  .progress = T
 )
 
 msgs <- vector()

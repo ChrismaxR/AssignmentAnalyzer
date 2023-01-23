@@ -14,9 +14,18 @@ tictoc::tic()
 gm_save_attachment(x = gm_message(id), attachment_id = attachmentId, path = here::here("data", "attachments"), user_id = "me")
 tictoc::toc()
 
+attachment_saver <- function(x) {
+  
+  x |> 
+    
+  
+}
+
+map(.x = msg_thread_ids, f. = )
+
 threads_attachments <- map(
   thread_ids, 
-  gm_attachment()
+  gm_save_attachments
 )
 
 test <- gm_message(threads[[1]][["threads"]][[1]][["id"]])

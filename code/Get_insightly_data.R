@@ -21,7 +21,7 @@ insightly_wrangle <- insightly |>
 # This object will serve as a filter to deduplicate the insightly data.
 filter_duplicates <- insightly_wrangle |> 
   janitor::get_dupes(Details) |> 
-  group_by(Details) |> 
+  group_by(Details) |>  
   mutate(dupe_id = row_number()) |> 
   filter(dupe_id != 1) |> 
   pull(RecordId)
@@ -34,7 +34,5 @@ final_insightly_set <- insightly_wrangle |>
 
 # breakdown of usable opportunities in 
 final_insightly_set |> 
-  count(lubridate::year(DateCreated))
-
-
+  count(year = lubridate::year(DateCreated), name = "usefulOpportunities")
 
