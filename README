@@ -1,3 +1,44 @@
+########### 10-02-2023 #####################
+
+Belangrijkste scripts:
+Get_email_corpus.R -> gmail API gebruiken om mails in te lezen
+Get_insightly_data.R -> oude emails uit insightly (via handmatige export) inladen en klaarzetten voor gpt-3 api
+Clean_email_corpus.R -> script om de email teksten op te schonen
+gpt_model_throughput.R -> script om teksten te parsen in gpt_3
+gpt_model_output.R -> output van de gpt-3 calls parsen en opschonen
+
+
+Oude/test scripts:
+email_analysis.R -> oud script om email data op te schonen
+GPT_packages_testing.R -> bestaande packages voor GPT proberen
+gmailr_save_attachments.R/Get_email_corpus_attachments.R -> sommige mails hebben geen body, alleen attachments. Hiermee data inladen, maar belangrijkste attachments zijn .eml formaat die ik vooralsnog niet kan inlezen.
+
+########### 04-01-2023 #####################
+
+Ik ben een klein stukje verder met ChatGPT. Ik kan in de ChatGPT web app best wel goed 
+benodigde data elementen uit een sample email halen. Werkt vrij goed. Nu is de vraag: hoe kan ik dit
+programmatisch doen?
+
+Paar packages in R die waarschijnlijk iets in die richting zouden moeten kunnen doen:
+{rgpt3}
+{openai}
+of gewoon via een api call, zelf kloten via {httr}. 
+{gpttools}??
+
+Zie voor mijn voortgang here::here("GPT_packages_testing.R")
+NB Python is meer "native" ondersteud door openai, misschien daar ook naar kijken...
+
+Wat ik tot nu toe heb geleerd:
+- methode/endpoint is waarschijnlijk "completions"
+- ik heb nu de davinci engine gebruikt, maar curie engine schijnt ook goed te zijn, en minder tokens benodigd. 
+- ik wil meerdere vragen over elke email stellen (of het een job posting is, organisatie, rol, eisen, job description, start datum), maar wil niet bij iedere call de hele tekst meesturen. Kan dat efficienter, en dus goedkoper?
+- ik moet nadenken over hoe ik uitkomsten zinnig kan verifieën. 
+
+Ik lijk weer wat verder gekomen te zijn: ik gebruik de GPT functie om een tekst samen te vatten in verschillende 'bakjes': zie: https://beta.openai.com/playground/p/default-parse-data
+
+Daarnaast heb ik de API aan het werk gekregen via {httr} (eerst geëxpirementeerd met Insomnia). Heb daarna de een functie aan het werk gekregen en deels gpt3 kunnen gebruiken voor het categoriseren van de emailteksten. :)
+
+
 ########### 06-12-2022 #####################
 
 EIGENSCHAPPEN VAN DE DATA:
@@ -38,31 +79,10 @@ WAT IS HET DOEL?
      Is alleen niet zo geschikt voor hele lappen tekst. 
      
      Dit is miss een andere optie: https://www.youtube.com/watch?v=fflkFtIwQXo
-   
-########### 04-01-2023 #####################
 
-Ik ben een klein stukje verder met ChatGPT. Ik kan in de ChatGPT web app best wel goed 
-benodigde data elementen uit een sample email halen. Werkt vrij goed. Nu is de vraag: hoe kan ik dit
-programmatisch doen?
 
-Paar packages in R die waarschijnlijk iets in die richting zouden moeten kunnen doen:
-{rgpt3}
-{openai}
-of gewoon via een api call, zelf kloten via {httr}. 
-{gpttools}??
 
-Zie voor mijn voortgang here::here("GPT_packages_testing.R")
-NB Python is meer "native" ondersteud door openai, misschien daar ook naar kijken...
 
-Wat ik tot nu toe heb geleerd:
-- methode/endpoint is waarschijnlijk "completions"
-- ik heb nu de davinci engine gebruikt, maar curie engine schijnt ook goed te zijn, en minder tokens benodigd. 
-- ik wil meerdere vragen over elke email stellen (of het een job posting is, organisatie, rol, eisen, job description, start datum), maar wil niet bij iedere call de hele tekst meesturen. Kan dat efficienter, en dus goedkoper?
-- ik moet nadenken over hoe ik uitkomsten zinnig kan verifieën. 
 
-########### 04-01-2023 #####################
 
-Ik lijk weer wat verder gekomen te zijn: ik gebruik de GPT functie om een tekst samen te vatten in verschillende 'bakjes': zie: https://beta.openai.com/playground/p/default-parse-data
-
-Daarnaast heb ik de API aan het werk gekregen via {httr} (eerst geëxpirementeerd met Insomnia). Heb daarna de een functie aan het werk gekregen en deels gpt3 kunnen gebruiken voor het categoriseren van de emailteksten. :)
 
