@@ -2,16 +2,51 @@ library(tidyverse)
 
 # Initial application of gpt on job ads:
 # see here::here("code", "gpt_model_throughtput.R") for how I got this data
-saved_test_function <- read_rds(here::here("data", "20230105_test_function_partial_success.rds"))
+saved_test_function <- read_rds(here::here("data", "20230211_test_function_partial_success.rds"))
 
 
-# Cleaning ----------------------------------------------------------------
+# Cleaning method 1: Programmatically ----------------------------------------------------------------
+
+saved_test_function$gpt_3[[1]] |> 
+  pluck("result")
+
+
+gpt_output_cleaner <- function(x) {
+
+  
+  linebreaks <- str_count(x, pattern = "\\n")
+  
+  if (linebreaks == 0) {
+    
+    return(str_remove(string = x, pattern = "\\s\\r\\s\\|"))
+    
+  } else if (linebreaks == 1) {
+    
+    
+    
+  }
+  else if (linebreaks == 2) {}
+  else if (linebreaks == 3) {}
+  else if(linebreaks == 13) {} 
+  else {
+    return(as.character(linebreaks))
+  }
+    
+}
 
 clean_test_function <- saved_test_function |> 
-  tidylog::mutate(
-    gpt_3 = as.character(gpt_3)
-  ) |> 
-  separate(col = gpt_3, sep = "\r\n", into = c("a", "b", "model_output")) |> # the model outputs a formatting that I need to get rid of
+  mutate(
+    result = as.character(
+      map(
+        .x = gpt_3 , 
+        .f = \(x) pluck(x, "result")
+      )
+    ),
+    no_of_linebreaks = map(.x = result, .f = \(x) str_count(x, pattern = "\\n"))
+    #result_clean = str_remove_all(string = result, pattern = "\\-{2,}|\\n|\\|\\s{2}\\|{2,}")
+  ) |> View()
+  separate(col = result, sep = "\\n|\\r", into = c("a", "b", "c", "d", "e", "f", "g", "h", "i", "j")) |> # the model outputs a formatting that I need to get rid of
+  glimpse() 
   mutate(
     model_output = str_remove(
       string = str_replace_all(
@@ -41,8 +76,36 @@ clean_test_function <- saved_test_function |>
   )
 
 
+# Cleaning method 2: Manually ---------------------------------------------
+
+manual_cleaning <- saved_test_function |> 
+    mutate(
+      result = as.character(
+        map(
+          .x = gpt_3 , 
+          .f = \(x) pluck(x, "result")
+        )
+      )
+    ) |> 
+    select(id, date, from, to, subject, body, result)
+  
+# writexl::write_xlsx(
+#   manual_cleaning, 
+#   here::here(
+#     "output", 
+#     str_c(BAutils::dater(Sys.Date()), "_manual_gpt_3_output_cleaning.xlsx")
+#   )
+# )  
+  
+manual_cleaning_cleaned <- readxl::read_excel(here::here("output", "20230212_manual_gpt_3_output_cleaning_chris.xlsx"))
+    
+manual_cleaning_cleaned |> 
+  separate(result_manual, sep = "\\|", into = letters, remove = F) |> 
+  View()
 # Graphing ----------------------------------------------------------------
 
+  
+  
 simple_cats <- clean_test_function |> 
   select(
     msg_ids,

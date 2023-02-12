@@ -1,5 +1,7 @@
 library(httr)
 
+# See here::here("code", "Clean_email_corpus.R") for the input for this script
+
 # Structure data with GPT-3 -----------------------------------------------
 
 # api function
@@ -44,21 +46,21 @@ parse_davinci <- function(input) {
 }
 
 
-# Email data --------------------------------------------------------------
+# Feed Email data into GPT-3 --------------------------------------------------------------
 
 # Apply the function to the email data (commented out, so I don't inadvertently use the API)
 # tictoc::tic()
-# primary_mails_parsed <- primary_mails |> 
+# messages_data_parsed <- messages_data_cleaned |>
 #   mutate(
 #     gpt_3 = map(
-#       .f = parse_davinci,
-#       .x = msg_body
+#       .x = method_3,
+#       .f = safely(parse_davinci)
 #     )
 #   )
 # tictoc::toc()
 
 # Saved test data to disk to manipulate later. 
-# write_rds(test_function, here::here("data", "20230105_test_function_partial_success.rds"))
+# write_rds(messages_data_parsed, here::here("data", "20230211_test_function_partial_success.rds"))
 
 # Insightly data---------------------------------------------------------------
 
