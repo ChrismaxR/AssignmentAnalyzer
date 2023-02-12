@@ -133,7 +133,7 @@ manual_cleaning_parsed <- manual_cleaning_cleaned |>
       str_detect(str_to_lower(job_title), "functioneel") == T ~ "Functioneel Ontwerper", 
       str_detect(str_to_lower(job_title), "informatie") == T ~ "Informatie Analist", 
       str_detect(str_to_lower(job_title), "proces") == T ~ "Process Analist", 
-      T ~ job_title
+      T ~ "other"
     ), 
     location_derived = str_trim(
       string = str_remove_all(
@@ -150,12 +150,13 @@ manual_cleaning_parsed <- manual_cleaning_cleaned |>
       str_detect(str_to_lower(required_education_level), "academisch") == T ~ "WO",
       str_detect(str_to_lower(required_education_level), "university|universitair") == T ~ "WO",
       str_detect(required_education_level, "N/A") == T ~ NA_character_,
-      T ~ required_education_level
+      T ~ "other"
     ), 
     experience_derived = case_when(
-      str_detect(required_years_of_experience, "[:digit:]") == T ~ str_remove_all(required_years_of_experience, "[:alpha:]"),
+      #str_detect(required_years_of_experience, "[:digit:]") == T ~ str_remove_all(required_years_of_experience, "[:alpha:]"),
+      str_detect(required_years_of_experience, "[:digit:]") == T ~ str_extract(required_years_of_experience, "[:digit:]"),
       str_detect(required_years_of_experience, "N/A|^\\-") == T ~ NA_character_,
-      T ~ required_years_of_experience
+      T ~ "other"
     ), 
     certification_derived = case_when(
       str_detect(str_to_lower(required_certification), "n/a|^\\-|none") == T ~ NA_character_,
@@ -168,73 +169,13 @@ manual_cleaning_parsed <- manual_cleaning_cleaned |>
       str_detect(str_to_lower(required_certification), "safe") == T ~ "SAFe",
       str_detect(str_to_lower(required_certification), "cism") == T ~ "CISM",
       str_detect(str_to_lower(required_certification), "togaf") == T ~ "TOGAF",
-      T ~ required_certification
+      T ~ "other"
     ), 
     hours_derived = case_when(
-      str_detect(working_hours, "[:digit:]") == T ~ str_trim(str_remove_all(working_hours, "[:alpha:]|\\.{1,2}|\\/|\\-$"), side = "both"),
+      #str_detect(working_hours, "[:digit:]") == T ~ str_trim(str_remove_all(working_hours, "[:alpha:]|\\.{1,2}|\\/|\\-$"), side = "both"),
+      str_detect(working_hours, "[:digit:]") == T ~ str_extract(working_hours, "[:digit:]{1,2}"),
       str_detect(working_hours, "N/A|^\\-") == T ~ NA_character_,
-      T ~ working_hours
+      T ~ "other"
     )
   )
  
-
-# Graphing ----------------------------------------------------------------
-
-  
-  
-simple_cats <- clean_test_function |> 
-  select(
-    msg_ids,
-    job_title, 
-    organisation, 
-    start_date, 
-    location
-  )
-
-simple_cats |> 
-  pivot_longer(cols = 2:5) |> 
-  count(name, value) |> 
-  ggplot(aes(y = fct_reorder(value, n), x = n)) +
-  geom_col() +
-  facet_wrap(~ name, scales = "free") +
-  BAutils::gg_theme_ba1() +
-  labs(
-    title = "Telling van mijn opdrachten op Job Title, Organisatie, Locatie en Start Datum", 
-    subtitle = str_wrap("Met behulp van GPT-3 heb ik emails van Gerrie met nieuwe opdrachten aan mij gestructureerd. GPT-3 is een zogenaamde Large Language Model die je o.a. in staat stelt op geschreven tekst te interpreteren, classificeren en groeperen. Hiermee kan je de (relatief) ongestructureerde opdrachtomschrijvingen terugbrengen tot analyseerbare data. Ik heb in totaal 34 emails door dit proces gehaald. Het is nog wat ruw, maar komt in de buurt.", 130),
-    x = "Count", 
-    y = NULL
-  )
-
-multiple_cats <- clean_test_function |> 
-  select(
-    msg_ids,
-    key_competences, 
-    nice_to_have_competences, 
-    key_job_characteristics
-  )
-
-multiple_cats_wrangle <- multiple_cats |> 
-  transmute(
-    msg_ids,
-    key_comps = map(.x = key_competences, .f = enframe), 
-    nice_comps = map(.x = nice_to_have_competences, .f = enframe), 
-    job_chars = map(.x = key_job_characteristics, .f = enframe)
-  ) |> 
-  pivot_longer(cols = 2:4) |> 
-  unnest_longer(col = value) |> 
-  unnest(cols = value, names_repair = "unique") |> 
-  select(msg_ids, var = 2, value) |>
-  mutate(
-    value = str_trim(value, side = "both")
-  ) |> 
-  na.omit() |> 
-  count(var, value, sort = T)
-
-multiple_cats_wrangle |> 
-  ggplot(aes(y = value, x = n)) +
-  geom_col() +
-  facet_wrap(~ var, scales = 'free')
-
-
-multiple_cats$key_competences[[1]] |> 
-  enframe()
