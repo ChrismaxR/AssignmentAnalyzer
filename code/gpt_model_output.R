@@ -1,8 +1,12 @@
 library(tidyverse)
 
-# Initial application of gpt on job ads:
+# Initial application of gpt on job ads on 2023-02-11:
 # see here::here("code", "gpt_model_throughtput.R") for how I got this data
 saved_test_function <- read_rds(here::here("data", "20230211_test_function_partial_success.rds"))
+
+# First try of feeding insightly data into openai API on 2023-02-13:
+insightly_2022_group16 <- read_rds(here::here("data", "20230213_test_function_2022_group16.rds"))
+
 
 # Extra data: Woonplaatsen data via: 
 # https://opendata.cbs.nl/#/CBS/nl/dataset/85210NED/table?searchKeywords=woonplaatsen
@@ -19,9 +23,6 @@ plaatsen <- read_delim(delim = ";", here::here("data", "Woonplaatsen_in_Nederlan
   append(c("den haag", "den bosch"))
 
 # Cleaning method 1: Programmatically ----------------------------------------------------------------
-
-saved_test_function$gpt_3[[1]] |> 
-  pluck("result")
 
 clean_test_function <- saved_test_function |> 
   mutate(
@@ -65,8 +66,7 @@ clean_test_function <- saved_test_function |>
   )
 
 
-# Cleaning method 2: Manually ---------------------------------------------
- 
+# Cleaning method 2: Manually - Email data -------------------------- 
 # This section preps the data to be exported to Excel, to do some manual cleaning
 # as method 1 proves that programmatic cleaning is quite difficult.
   
@@ -176,6 +176,120 @@ manual_cleaning_parsed <- manual_cleaning_cleaned |>
       str_detect(working_hours, "[:digit:]") == T ~ str_extract(working_hours, "[:digit:]{1,2}"),
       str_detect(working_hours, "N/A|^\\-") == T ~ NA_character_,
       T ~ "other"
+    ), 
+    hourly_rate_derived = case_when(
+      str_detect(hourly_rate, "[:digit:]") == T ~ str_extract(hourly_rate, "[:digit:]{1,}"),
+      str_detect(hourly_rate, "N/A|^\\-") == T ~ NA_character_,
+      T ~ "other"
     )
   )
+
+
+
+# Cleaning method 2: Manually - Insightly data --------------------------
+  
+manual_cleaning_insightly_2022_group16 <- insightly_2022_group16 |> 
+  mutate(
+    result = as.character(
+      map(
+        .x = gpt_3 , 
+        .f = \(x) pluck(x, "result")
+      )
+    )
+  ) |>  
+  transmute(
+    id = RecordId, 
+    date = DateCreated, 
+    from = "insightly", 
+    to = "insightly", 
+    subject = "insightly", 
+    body = Details, 
+    result
+  )  
+
+# writexl::write_xlsx(
+#   manual_cleaning_insightly_2022_group16,
+#   here::here(
+#     "output",
+#     str_c(BAutils::dater(Sys.Date()), "_manual_gpt_3_output_cleaning_insightly_2022_group16.xlsx")
+#   )
+# )
+
+manual_cleaning_insightly_2022_group16_cleaned <- readxl::read_excel(here::here("output", "20230213_manual_gpt_3_output_cleaning_insightly_2022_group16_chris.xlsx"))
+
+
+manual_cleaning_insightly_2022_group16_parsed <- manual_cleaning_insightly_2022_group16_cleaned |> 
+  separate(
+    col = result_manual, 
+    sep = "\\|", 
+    into = c(
+      "job_title", "organisation", "location", "required_years_of_experience", 
+      "required_education_level", "start_date", "required_skills", 
+      "required_certification", "working_hours", "job_duration", "hourly_rate",
+      "extra1", "extra2", "extra3", "extra4", "extra5", "extra6"
+    ), 
+    remove = F
+  ) |> 
+  tidylog::mutate_all(.funs = \(x) str_trim(x, side = "both")) |> 
+  tidylog::mutate(
+    job_title_derived = case_when(
+      str_detect(str_to_lower(job_title), "business analist|business analyst") == T ~ "Business Analist",
+      str_detect(str_to_lower(job_title), "scrum|master") == T ~ "Scrum Master", 
+      str_detect(str_to_lower(job_title), "agile") == T ~ "Agile Coach", 
+      str_detect(str_to_lower(job_title), "product") == T ~ "Product Owner", 
+      str_detect(str_to_lower(job_title), "functioneel") == T ~ "Functioneel Ontwerper", 
+      str_detect(str_to_lower(job_title), "informatie") == T ~ "Informatie Analist", 
+      str_detect(str_to_lower(job_title), "proces") == T ~ "Process Analist", 
+      T ~ "other"
+    ), 
+    location_derived = str_trim(
+      string = str_remove_all(
+        str_to_lower(location), 
+        pattern = "nederland|thuis|thuiswerkplek|werkplek|werken|omgeving|hybride|\\sand\\s|remote|\\/|\\s\\-|\\,|\\sen|location|[0-9]{2,}|\\s[a-z]{1,2}$"
+      ), 
+      side = "both" 
+    ), 
+    education_derived = case_when(
+      str_detect(str_to_lower(required_education_level), "hbo") == T ~ "HBO",
+      str_detect(str_to_lower(required_education_level), "wo") == T ~ "WO",
+      str_detect(str_to_lower(required_education_level), "bachelor") == T ~ "HBO",
+      str_detect(str_to_lower(required_education_level), "master") == T ~ "WO",
+      str_detect(str_to_lower(required_education_level), "academisch") == T ~ "WO",
+      str_detect(str_to_lower(required_education_level), "university|universitair") == T ~ "WO",
+      str_detect(required_education_level, "N/A") == T ~ NA_character_,
+      T ~ "other"
+    ), 
+    experience_derived = case_when(
+      #str_detect(required_years_of_experience, "[:digit:]") == T ~ str_remove_all(required_years_of_experience, "[:alpha:]"),
+      str_detect(required_years_of_experience, "[:digit:]") == T ~ str_extract(required_years_of_experience, "[:digit:]"),
+      str_detect(required_years_of_experience, "N/A|^\\-") == T ~ NA_character_,
+      T ~ "other"
+    ), 
+    certification_derived = case_when(
+      str_detect(str_to_lower(required_certification), "n/a|^\\-|none") == T ~ NA_character_,
+      str_detect(str_to_lower(required_certification), "psm") == T ~ "PSM I/II",
+      str_detect(str_to_lower(required_certification), "ireb") == T ~ "IREB",
+      str_detect(str_to_lower(required_certification), "jstd") == T ~ "JSTD",
+      str_detect(str_to_lower(required_certification), "bpmn") == T ~ "BPMN",
+      str_detect(str_to_lower(required_certification), "itil") == T ~ "ITIL",
+      str_detect(str_to_lower(required_certification), "wwft") == T ~ "WWFT",
+      str_detect(str_to_lower(required_certification), "safe") == T ~ "SAFe",
+      str_detect(str_to_lower(required_certification), "cism") == T ~ "CISM",
+      str_detect(str_to_lower(required_certification), "togaf") == T ~ "TOGAF",
+      T ~ "other"
+    ), 
+    hours_derived = case_when(
+      #str_detect(working_hours, "[:digit:]") == T ~ str_trim(str_remove_all(working_hours, "[:alpha:]|\\.{1,2}|\\/|\\-$"), side = "both"),
+      str_detect(working_hours, "[:digit:]") == T ~ str_extract(working_hours, "[:digit:]{1,2}"),
+      str_detect(working_hours, "N/A|^\\-") == T ~ NA_character_,
+      T ~ "other"
+    ),
+    hourly_rate_derived = case_when(
+      str_detect(hourly_rate, "[:digit:]") == T ~ str_extract(hourly_rate, "[:digit:]{1,}"),
+      str_detect(hourly_rate, "N/A|^\\-") == T ~ NA_character_,
+      T ~ "other"
+    )
+  )
+
+
  

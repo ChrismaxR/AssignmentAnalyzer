@@ -1,5 +1,7 @@
 library(tidyverse)
 
+set.seed(42)
+
 # Get data ----------------------------------------------------------------
 
 insightly <- read_csv(here::here("data", "20230118_insightly_opportunities_export.csv"))
@@ -29,10 +31,40 @@ filter_duplicates <- insightly_wrangle |>
 final_insightly_set <- insightly_wrangle |> 
   tidylog::filter(!RecordId %in% filter_duplicates)
 
-
 # Check data --------------------------------------------------------------
 
 # breakdown of usable opportunities in 
 final_insightly_set |> 
   count(year = lubridate::year(DateCreated), name = "usefulOpportunities")
 
+
+
+# Clean data --------------------------------------------------------------
+
+insightly_cleaned <- final_insightly_set |> 
+  mutate(
+    year = lubridate::year(DateCreated),
+    clean_string = str_replace_all(
+      string = str_remove_all(Details, "\\*|\\-{2,}|\\t"), 
+      pattern = "\\s{2,}", 
+      replacement = " "
+    ),
+    clean_string_length = str_length(clean_string)
+  ) |>
+  arrange(year)
+  
+insightly_year <- insightly_cleaned |> 
+  group_split(year, group_id = row_number() %/% 200) |> 
+  setNames(
+    c(
+      "2016", 
+      "2017", "2017", "2017",
+      "2018", "2018", 
+      "2019", "2019",
+      "2020", "2020", "2020",
+      "2021", "2021", "2021",
+      "2022", "2022", 
+      "2023"
+    )
+  )
+  

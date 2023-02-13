@@ -1,8 +1,44 @@
 library(tidyverse)
 
+compiled_parsed_output <- bind_rows(
+  manual_cleaning_parsed, # add data from emails up until 2022-02-11
+  manual_cleaning_insightly_2022_group16_parsed |> filter(!str_detect(result_manual, "^Error")) # add data from insightly group 16 ()
+)
+
+
+# Share data
+
+compiled_parsed_output |> 
+  select(
+    id, 
+    date,
+    body, 
+    result,
+    job_title,
+    job_title_derived,
+    organisation, 
+    location,
+    location_derived,
+    experience = required_years_of_experience,
+    experience_derived,
+    eduction = required_education_level,
+    education_derived,
+    required_skills,
+    certification = required_certification,
+    certification_derived,
+    hours = working_hours,
+    hours_derived,
+    job_duration,
+    hourly_rate,
+    hourly_rate_derived
+  ) #|> 
+  #writexl::write_xlsx(here::here("output", str_c(BAutils::dater(Sys.Date()), "_compiled_parsed_data.xlsx")))
+
+
+
 # Graphing ----------------------------------------------------------------
 
-simple_cats <- manual_cleaning_parsed |> 
+simple_cats <- compiled_parsed_output |> 
   select(
     id,
     job_title_derived, 
@@ -29,7 +65,7 @@ simple_cats |>
     y = NULL
   )
 
-multiple_cats <- manual_cleaning_parsed |> 
+multiple_cats <- compiled_parsed_output |> 
   transmute(
     id,
     required_skills = map(
@@ -49,4 +85,6 @@ multiple_cats_wrangle |>
   geom_col() +
   facet_wrap(~ var, scales = 'free')
 
-  enframe()
+  
+  
+  
