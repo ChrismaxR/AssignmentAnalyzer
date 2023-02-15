@@ -1,13 +1,9 @@
 library(tidyverse)
 
-compiled_parsed_output <- bind_rows(
-  manual_cleaning_parsed, # add data from emails up until 2022-02-11
-  manual_cleaning_insightly_parsed |> 
-    filter(
-      !str_detect(result_manual, "^Error|NULL")
-    ) # add data from insightly data
-)
 
+# Get data ----------------------------------------------------------------
+
+compiled_parsed_output <- read_rds(here::here("data", "20230215_compiled_parsed_output.rds"))
 
 # Share data
 
@@ -20,6 +16,7 @@ compiled_parsed_output |>
     job_title,
     job_title_derived,
     organisation, 
+    organisation_derived,
     location,
     location_derived,
     experience = required_years_of_experience,
@@ -45,7 +42,7 @@ simple_cats <- compiled_parsed_output |>
   select(
     id,
     job_title_derived, 
-    organisation,
+    organisation_derived,
     location_derived,
     education_derived, 
     experience_derived,
