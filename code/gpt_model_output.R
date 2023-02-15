@@ -6,6 +6,7 @@ saved_test_function <- read_rds(here::here("data", "20230211_test_function_parti
 
 # First try of feeding insightly data into openai API on 2023-02-13:
 insightly_2022_group16 <- read_rds(here::here("data", "20230213_test_function_2022_group16.rds"))
+insightly_2022_group15 <- read_rds(here::here("data", "20230215_test_function_2022_group15.rds"))
 
 
 # Extra data: Woonplaatsen data via: 
@@ -187,38 +188,71 @@ manual_cleaning_parsed <- manual_cleaning_cleaned |>
 
 
 # Cleaning method 2: Manually - Insightly data --------------------------
-  
-manual_cleaning_insightly_2022_group16 <- insightly_2022_group16 |> 
-  mutate(
-    result = as.character(
-      map(
-        .x = gpt_3 , 
-        .f = \(x) pluck(x, "result")
-      )
-    )
-  ) |>  
-  transmute(
-    id = RecordId, 
-    date = DateCreated, 
-    from = "insightly", 
-    to = "insightly", 
-    subject = "insightly", 
-    body = Details, 
-    result
-  )  
 
-# writexl::write_xlsx(
-#   manual_cleaning_insightly_2022_group16,
-#   here::here(
-#     "output",
-#     str_c(BAutils::dater(Sys.Date()), "_manual_gpt_3_output_cleaning_insightly_2022_group16.xlsx")
-#   )
+# I need to manually clean the output from GPT3. Before I do this, I can do 
+# prepatory cleaning of the GPT3 output data, before exporting it to Excel. 
+  
+manual_insightly_prep <- function(df, group_no_char) {
+  
+  prep <- df |> 
+    mutate(
+      result = as.character(
+        map(
+          .x = gpt_3 , 
+          .f = \(x) pluck(x, "result")
+        )
+      )
+    ) |>  
+    transmute(
+      id = RecordId, 
+      date = DateCreated, 
+      from = "insightly", 
+      to = "insightly", 
+      subject = "insightly", 
+      body = Details, 
+      result, 
+      result_manual = result # duplicate column to do the manual cleaning in
+    )
+  
+  # Export to Excel for manual work:
+  
+  writexl::write_xlsx(
+    prep,
+    here::here(
+      "output",
+      str_c(
+        BAutils::dater(Sys.Date()), 
+        "_manual_gpt_3_output_cleaning_insightly_2022_group",
+        group_no_char,
+        ".xlsx")
+    )
+  )
+  
+}
+
+# manual_cleaning_insightly_2022_group16 <- manual_insightly_prep(
+#   df = insightly_2022_group16, 
+#   group_no_char = "16"
+# )
+ 
+# manual_cleaning_insightly_2022_group15 <- manual_insightly_prep(
+#   df = insightly_2022_group15,
+#   group_no_char = "15"
 # )
 
-manual_cleaning_insightly_2022_group16_cleaned <- readxl::read_excel(here::here("output", "20230213_manual_gpt_3_output_cleaning_insightly_2022_group16_chris.xlsx"))
 
 
-manual_cleaning_insightly_2022_group16_parsed <- manual_cleaning_insightly_2022_group16_cleaned |> 
+
+# Ingest manually cleaned data --------------------------------------------
+
+
+insightly_compiled_groups_cleaned <- bind_rows(
+  manual_cleaning_insightly_2022_group16_cleaned <- readxl::read_excel(here::here("output", "20230213_manual_gpt_3_output_cleaning_insightly_2022_group16_chris.xlsx")),
+  manual_cleaning_insightly_2022_group15_cleaned <- readxl::read_excel(here::here("output", "20230215_manual_gpt_3_output_cleaning_insightly_2022_group15_chris.xlsx"))
+)
+
+
+manual_cleaning_insightly_parsed <- insightly_compiled_groups_cleaned |> 
   separate(
     col = result_manual, 
     sep = "\\|", 

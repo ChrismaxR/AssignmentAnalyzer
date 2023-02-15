@@ -2,7 +2,10 @@ library(tidyverse)
 
 compiled_parsed_output <- bind_rows(
   manual_cleaning_parsed, # add data from emails up until 2022-02-11
-  manual_cleaning_insightly_2022_group16_parsed |> filter(!str_detect(result_manual, "^Error")) # add data from insightly group 16 ()
+  manual_cleaning_insightly_parsed |> 
+    filter(
+      !str_detect(result_manual, "^Error|NULL")
+    ) # add data from insightly data
 )
 
 
@@ -31,8 +34,8 @@ compiled_parsed_output |>
     job_duration,
     hourly_rate,
     hourly_rate_derived
-  ) #|> 
-  #writexl::write_xlsx(here::here("output", str_c(BAutils::dater(Sys.Date()), "_compiled_parsed_data.xlsx")))
+  ) # |> 
+  # writexl::write_xlsx(here::here("output", str_c(BAutils::dater(Sys.Date()), "_compiled_parsed_data.xlsx")))
 
 
 
