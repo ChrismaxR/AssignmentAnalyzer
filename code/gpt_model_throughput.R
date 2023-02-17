@@ -94,6 +94,42 @@ parse_davinci <- function(input) {
 # tictoc::toc()
 # beepr::beep()
 
+# tictoc::tic()
+# insightly_parsed_2022_group14 <- insightly_year[[14]] |>
+#   mutate(
+#     gpt_3 = map(
+#       .f = safely(parse_davinci),
+#       .x = Details,
+#       .progress = T
+#     )
+#   )
+# tictoc::toc()
+# beepr::beep()
+
+# tictoc::tic()
+# insightly_parsed_2021_group13 <- insightly_year[[13]] |>
+#   mutate(
+#     gpt_3 = map(
+#       .f = safely(parse_davinci),
+#       .x = Details,
+#       .progress = T
+#     )
+#   )
+# tictoc::toc()
+# beepr::beep()
+
+# tictoc::tic()
+# insightly_parsed_2021_group12 <- insightly_year[[12]] |>
+#   mutate(
+#     gpt_3 = map(
+#       .f = safely(parse_davinci),
+#       .x = Details,
+#       .progress = T
+#     )
+#   )
+# tictoc::toc()
+# beepr::beep()
+
 
 # Saved test data to disk to manipulate later. 
 # First try with a sample set
@@ -102,6 +138,15 @@ parse_davinci <- function(input) {
 # Second try with partial set of data (namely group 16 - see Get_insightly_data.R for further details). This was on 2023-02-13
 # write_rds(insightly_parsed_2022_group16, here::here("data", str_c(BAutils::dater(Sys.Date()), "_test_function_2022_group16.rds")))
 
-# third try with partial set of data (namely group 16 - see Get_insightly_data.R for further details). This was on 2023-02-13
+# third try with partial set of data (namely group 15 - see Get_insightly_data.R for further details). This was on 2023-02-13
 # write_rds(insightly_parsed_2022_group15, here::here("data", str_c(BAutils::dater(Sys.Date()), "_test_function_2022_group15.rds")))
+
+# fourth try with partial set of data (namely group 14 - see Get_insightly_data.R for further details). This was on 2023-02-17
+# write_rds(insightly_parsed_2022_group14, here::here("data", str_c(BAutils::dater(Sys.Date()), "_test_function_2022_group14.rds")))
+
+# fifth try with partial set of data (namely group 13 - see Get_insightly_data.R for further details). This was on 2023-02-17
+# write_rds(insightly_parsed_2021_group13, here::here("data", str_c(BAutils::dater(Sys.Date()), "_test_function_2021_group13.rds")))
+
+# sixth try with partial set of data (namely group 12 - see Get_insightly_data.R for further details). This was on 2023-02-17
+# write_rds(insightly_parsed_2021_group12, here::here("data", str_c(BAutils::dater(Sys.Date()), "_test_function_2021_group12.rds")))
 

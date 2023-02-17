@@ -22,7 +22,7 @@ compiled_parsed_output <- read_rds(latest_compiled_parsed_set) |>
 
 # Share data
 
-compiled_parsed_output |> 
+share_file <- compiled_parsed_output |> 
   transmute(
     id, 
     date,
@@ -47,7 +47,9 @@ compiled_parsed_output |>
     hourly_rate,
     hourly_rate_derived, 
     broker
-  ) # |> 
+  ) 
+
+# share_file |> 
   # writexl::write_xlsx(here::here("output", str_c(BAutils::dater(Sys.Date()), "_compiled_parsed_data.xlsx")))
 
 
@@ -103,6 +105,54 @@ multiple_cats_wrangle |>
   geom_col() +
   facet_wrap(~ var, scales = 'free')
 
-  
-  
+
+# Impute hourly rates -----------------------------------------------------
+
+# D.d. 2023-02-17 I find the following breakdown in hourly rates:
+
+share_file |> 
+  transmute(
+    hourly_rate_original = str_to_lower(hourly_rate),
+    market_conformity = if_else(str_detect(str_to_lower(hourly_rate), "market|markt|conform|mc") == T, T, F),
+    buckets = case_when(
+      str_detect(str_to_lower(hourly_rate), "[:digit:]{2,}") == T ~ "price",
+      str_detect(str_to_lower(hourly_rate), "market|markt|conform|mc") == T ~ "market conformity",
+      str_detect(str_to_lower(hourly_rate), "negotiable|overleg|t.b.d.|n.t.b.|n.o.t.k.|negotiation") == T ~ "negotiable",
+      T ~ "Unknown"
+    )
+  ) |> 
+  count(buckets) |>
+  mutate(
+    perc = n/sum(n)
+  ) |> 
+  View()
+
+# Result:
+# hourly_rate       |   # |   %
+# ------------------|-----|----
+# market conformity |  74 | 19%
+# negotiable        |  87 | 22%
+# price             |  74 | 19%
+# Unknown           | 157 | 40% 
+
+# Can I impute in some way what missing hourly rates could be?
+
+
+# I think that education, years of experience, industry sector and possibly
+# job title influence the market conformity price.
+
+impute_rates <- share_file |> 
+  tidylog::mutate(
+    hourly_rate_stripped = as.numeric(na_if(str_remove_all(hourly_rate_derived, "[:alpha:]"), ""))
+  ) 
+
+# On the basis of this dist
+impute_rates |> 
+  select(ends_with("derived"), hourly_rate_stripped, -hourly_rate_derived) |> 
+  tidylog::filter(between(hourly_rate_stripped, 60, 200)) |> 
+  pivot_longer(cols = 1:7) |> 
+  ggplot(aes(y = value, x = hourly_rate_stripped)) +
+  geom_jitter() +
+  geom_boxplot() +
+  facet_wrap(~name, scales = "free")
   

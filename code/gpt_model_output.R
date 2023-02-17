@@ -2,7 +2,6 @@
 
 library(tidyverse)
 
-
 gpt_output_parser <- function(df) {
   
   # This R code performs various data cleaning and transformation operations on a data frame named manual_cleaning_cleaned.
@@ -176,14 +175,6 @@ manual_insightly_prep <- function(df, group_no_char) {
 
 # Data from gmail api
 
-# First try of feeding insightly data into openai API on 2023-02-13:
-insightly_2022_group16 <- read_rds(
-  here::here("data", "20230213_test_function_2022_group16.rds")
-)
-insightly_2022_group15 <- read_rds(
-  here::here("data", "20230215_test_function_2022_group15.rds")
-)
-
 # Cleaning method: Manually - Email data -------------------------- 
 # This section preps the data to be exported to Excel, to do some manual cleaning
 # as method 1 proves that programmatic cleaning is quite difficult.
@@ -200,6 +191,27 @@ manual_cleaning_parsed <- gpt_output_parser(manual_cleaning_cleaned) |>
 
 # Cleaning method: Manually - Insightly data --------------------------
 
+# First try of feeding insightly data into openai API on 2023-02-13:
+# insightly_2022_group16 <- read_rds(
+#   here::here("data", "20230213_test_function_2022_group16.rds")
+# )
+# insightly_2022_group15 <- read_rds(
+#   here::here("data", "20230215_test_function_2022_group15.rds")
+# )
+
+# Second try of feeding insightly data into openai API on 2023-02-17:
+insightly_2022_group14 <- read_rds(
+  here::here("data", "20230217_test_function_2022_group14.rds")
+)
+
+insightly_2021_group13 <- read_rds(
+  here::here("data", "20230217_test_function_2021_group13.rds")
+)
+
+insightly_2021_group12 <- read_rds(
+  here::here("data", "20230217_test_function_2021_group12.rds")
+)
+
 # I need to manually clean the output from GPT3. Before I do this, I can do 
 # prepatory cleaning of the GPT3 output data, before exporting it to Excel. 
   
@@ -213,8 +225,24 @@ manual_cleaning_parsed <- gpt_output_parser(manual_cleaning_cleaned) |>
 #   group_no_char = "15"
 # )
 
+# manual_cleaning_insightly_2022_group14 <- manual_insightly_prep(
+#   df = insightly_2022_group14,
+#   group_no_char = "14"
+# )
+#  
+# manual_cleaning_insightly_2021_group13 <- manual_insightly_prep(
+#   df = insightly_2021_group13,
+#   group_no_char = "13"
+# )
+# 
+# manual_cleaning_insightly_2021_group12 <- manual_insightly_prep(
+#   df = insightly_2021_group12,
+#   group_no_char = "12"
+# )
+
 
 # Ingest manually cleaned data --------------------------------------------
+
 
 # Get the manually manipulated Insightly data
 insightly_compiled_groups_cleaned <- bind_rows(
@@ -227,7 +255,7 @@ insightly_compiled_groups_cleaned <- bind_rows(
     mutate(
       source = "insightly_group_16"
     ),
-  manual_cleaning_insightly_2022_group15_cleaned <- readxl::read_excel(
+  manual_cleaning_insightly_2021_group15_cleaned <- readxl::read_excel(
     here::here(
       "output", 
       "20230215_manual_gpt_3_output_cleaning_insightly_2022_group15_chris.xlsx"
@@ -235,6 +263,33 @@ insightly_compiled_groups_cleaned <- bind_rows(
   ) |> 
   mutate(
     source = "insightly_group_15"
+  ),
+  manual_cleaning_insightly_2021_group14_cleaned <- readxl::read_excel(
+    here::here(
+      "output", 
+      "20230217_manual_gpt_3_output_cleaning_insightly_2022_group14_chris.xlsx"
+    )
+  ) |> 
+  mutate(
+    source = "insightly_group_14"
+  ),
+  manual_cleaning_insightly_2021_group13_cleaned <- readxl::read_excel(
+    here::here(
+      "output", 
+      "20230217_manual_gpt_3_output_cleaning_insightly_2021_group13_chris.xlsx"
+    )
+  ) |> 
+  mutate(
+    source = "insightly_group_13"
+  ),
+  manual_cleaning_insightly_2021_group12_cleaned <- readxl::read_excel(
+    here::here(
+      "output", 
+      "20230217_manual_gpt_3_output_cleaning_insightly_2021_group12_chris.xlsx"
+    )
+  ) |> 
+  mutate(
+    source = "insightly_group_12"
   )
 )
 
@@ -256,7 +311,6 @@ compiled_parsed_output <- bind_rows(
 
 # Save cleaned and parsed data 
 # write_rds(compiled_parsed_output, here::here("data", str_c(BAutils::dater(Sys.Date()), "_compiled_parsed_output.rds")))
-
 
 
 # Do some extra checking on compiled set ----------------------------------
