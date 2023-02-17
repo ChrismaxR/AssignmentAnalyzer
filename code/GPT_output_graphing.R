@@ -3,12 +3,27 @@ library(tidyverse)
 
 # Get data ----------------------------------------------------------------
 
-compiled_parsed_output <- read_rds(here::here("data", "20230215_compiled_parsed_output.rds"))
+latest_compiled_parsed_set <- fs::dir_ls(here::here("data"), regexp = "_compiled_parsed_output.rds$") |> 
+  enframe() |> 
+  arrange(desc(name)) |> 
+  slice(1) |> 
+  pull(value)
+
+# all the data (insigthly & email data)compiled into one file after gpt throughput and manual cleaning 
+compiled_parsed_output <- read_rds(latest_compiled_parsed_set) |> 
+  mutate(
+    broker = map(
+    .x = extracted_broker, 
+    .f = \(x) pluck(x, "result")
+    ), 
+    broker = as.character(broker)
+  ) |> 
+  select(-extracted_email, -extracted_broker)
 
 # Share data
 
 compiled_parsed_output |> 
-  select(
+  transmute(
     id, 
     date,
     body, 
@@ -30,7 +45,8 @@ compiled_parsed_output |>
     hours_derived,
     job_duration,
     hourly_rate,
-    hourly_rate_derived
+    hourly_rate_derived, 
+    broker
   ) # |> 
   # writexl::write_xlsx(here::here("output", str_c(BAutils::dater(Sys.Date()), "_compiled_parsed_data.xlsx")))
 
@@ -47,15 +63,17 @@ simple_cats <- compiled_parsed_output |>
     education_derived, 
     experience_derived,
     hours_derived, 
-    certification_derived
+    certification_derived, 
+    broker
   )
 
 simple_cats |> 
   pivot_longer(cols = 2:ncol(simple_cats)) |> 
   count(name, value) |> 
-  na.omit() |> 
-  ggplot(aes(y = fct_reorder(value, n), x = n)) +
+  #na.omit() |> 
+  ggplot(aes(y = tidytext::reorder_within(x = value, by = n, within = name), x = n)) +
   geom_col() +
+  tidytext::scale_y_reordered() +
   facet_wrap(~ name, scales = "free") +
   BAutils::gg_theme_ba1() +
   labs(

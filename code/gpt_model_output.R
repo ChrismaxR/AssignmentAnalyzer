@@ -2,6 +2,7 @@
 
 library(tidyverse)
 
+
 gpt_output_parser <- function(df) {
   
   # This R code performs various data cleaning and transformation operations on a data frame named manual_cleaning_cleaned.
@@ -34,7 +35,7 @@ gpt_output_parser <- function(df) {
         str_detect(str_to_lower(job_title), "functioneel") == T ~ "Functioneel Ontwerper", 
         str_detect(str_to_lower(job_title), "informatie") == T ~ "Informatie Analist", 
         str_detect(str_to_lower(job_title), "proces") == T ~ "Process Analist", 
-        T ~ "other"
+        T ~ "Anders"
       ), 
       location_derived = str_trim(
         # The location_derived column removes common location-related words and patterns from the location column using regular expressions and trims any remaining white space.
@@ -47,12 +48,17 @@ gpt_output_parser <- function(df) {
       organisation_derived = case_when(
         # The organisation_derived column classifies common organisation-related words and patterns from the organisation column using regular expressions.
         str_detect(str_to_lower(organisation), "gemeente") == T ~ "Gemeente",
-        str_detect(str_to_lower(organisation), "ministerie|dienst|rechtspraak|cjib|acm|rivm|forensisch|nvwa|duo|dictu|buza|bzk|autoriteit|rvo|szw|dji|knmi|logius|rijks|defensie|jenv") == T ~ "Rijksoverheid",
-        str_detect(str_to_lower(organisation), "school|universiteit") == T ~ "Onderwijs",
-        str_detect(str_to_lower(organisation), "bank") == T ~ "Banken",
-        str_detect(str_to_lower(organisation), "nederlandse spoorwegen") == T ~ "NS",
-        str_detect(str_to_lower(organisation), "nederlandse spoorwegen") == T ~ "NS",
-        
+        str_detect(str_to_lower(organisation), "ministerie|szw|buza|bzk|defensie|jenv|^ezk|sociale zaken") == T ~ "Rijksoverheid",
+        str_detect(str_to_lower(organisation), "rijks|dienst|rechtspraak|cjib|acm|rivm|forensisch|nfi|cibg|koophandel|nvwa|duo|dictu|autoriteit|rvo|dji|knmi|logius|politie|raad|uwv|^ind|koop|justid") == T ~ "Rijksuitvoeringsorg",
+        str_detect(str_to_lower(organisation), "school|universiteit|^hva|^vu|tu delft") == T ~ "Onderwijs",
+        str_detect(str_to_lower(organisation), "bank|lease|hiltermann") == T ~ "Financiele Dienstverlening",
+        str_detect(str_to_lower(organisation), "nederlandse spoorwegen|^ns$|klm|schiphol|luchtverkeersleiding") == T ~ "Transport/Logistiek",
+        str_detect(str_to_lower(organisation), "stedin|waternet|tennet|vattenfall|alliander") == T ~ "Infra/Energie",
+        str_detect(str_to_lower(organisation), "alphabet|asml") == T ~ "Tech",
+        str_detect(str_to_lower(organisation), "aegon|goudse|vgz|verzekeraar|verzekering|nationale nederlanden|^nn$") == T ~ "Verzekeraars",
+        str_detect(str_to_lower(organisation), "dela|postnl|enza|evbox|hallmark|fondo") == T ~ "Overige Dienstverlening",
+        str_detect(str_to_lower(organisation), "n/a") == T ~ NA_character_,
+        T ~ "Anders"
       ),
       education_derived = case_when(
         # The education_derived column assigns a standardized education level value based on patterns in the required_education_level column.
@@ -63,14 +69,14 @@ gpt_output_parser <- function(df) {
         str_detect(str_to_lower(required_education_level), "academisch") == T ~ "WO",
         str_detect(str_to_lower(required_education_level), "university|universitair") == T ~ "WO",
         str_detect(required_education_level, "N/A") == T ~ NA_character_,
-        T ~ "other"
+        T ~ "Anders"
       ), 
       experience_derived = case_when(
         # The experience_derived column extracts the numeric values from the required_years_of_experience column and removes any non-numeric characters.
         #str_detect(required_years_of_experience, "[:digit:]") == T ~ str_remove_all(required_years_of_experience, "[:alpha:]"),
         str_detect(required_years_of_experience, "[:digit:]") == T ~ str_extract(required_years_of_experience, "[:digit:]"),
         str_detect(required_years_of_experience, "N/A|^\\-") == T ~ NA_character_,
-        T ~ "other"
+        T ~ "Anders"
       ), 
       certification_derived = case_when(
         # The certification_derived column assigns a standardized certification value based on patterns in the required_certification column.
@@ -84,23 +90,48 @@ gpt_output_parser <- function(df) {
         str_detect(str_to_lower(required_certification), "safe") == T ~ "SAFe",
         str_detect(str_to_lower(required_certification), "cism") == T ~ "CISM",
         str_detect(str_to_lower(required_certification), "togaf") == T ~ "TOGAF",
-        T ~ "other"
+        T ~ "Anders"
       ), 
       hours_derived = case_when(
         # The hours_derived column extracts the numeric values from the working_hours column and removes any non-numeric characters.
         #str_detect(working_hours, "[:digit:]") == T ~ str_trim(str_remove_all(working_hours, "[:alpha:]|\\.{1,2}|\\/|\\-$"), side = "both"),
         str_detect(working_hours, "[:digit:]") == T ~ str_extract(working_hours, "[:digit:]{1,2}"),
         str_detect(working_hours, "N/A|^\\-") == T ~ NA_character_,
-        T ~ "other"
+        T ~ "Anders"
       ),
       hourly_rate_derived = case_when(
         str_detect(hourly_rate, "[:digit:]") == T ~ str_extract(hourly_rate, "[:digit:]{1,}"),
         str_detect(hourly_rate, "N/A|^\\-") == T ~ NA_character_,
-        T ~ "other"
+        T ~ "Anders"
       ), 
-      extracted_email = str_extract_all(body, pattern = ".*\\@.*")
+      #pull all strings that contain an @-symbol so I can find the broker/recruiter. 
+      extracted_email = str_extract_all(
+        body, 
+        pattern = "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b"
+      ),
+      extracted_broker = map(
+        .x = extracted_email,
+        .f = safely(
+          \(x) {
+            
+            domains_list <- str_extract(x, "(?<=@).*?(?=\\.)")
+            
+            if (length(domains_list) > 0 ) {
+              
+              non_entrador_list <- keep(domains_list, ~.x != "entrador")
+              
+              return(non_entrador_list[[1]])
+              
+            } else {
+              
+              return(list <- c(NA_character_))
+              
+            }
+            
+          }
+        )
+      )
     )
-  
 }
 
 manual_insightly_prep <- function(df, group_no_char) {
@@ -161,7 +192,10 @@ manual_cleaning_cleaned <- readxl::read_excel(
   here::here("output", "20230212_manual_gpt_3_output_cleaning_chris.xlsx")
 )
 
-manual_cleaning_parsed <- gpt_output_parser(manual_cleaning_cleaned)
+manual_cleaning_parsed <- gpt_output_parser(manual_cleaning_cleaned) |> 
+  mutate(
+    source = "email until 2023-02-11"
+  )
 
 
 # Cleaning method: Manually - Insightly data --------------------------
@@ -188,20 +222,29 @@ insightly_compiled_groups_cleaned <- bind_rows(
     here::here(
       "output", 
       "20230213_manual_gpt_3_output_cleaning_insightly_2022_group16_chris.xlsx"
-    )
-  ),
+    ) 
+  ) |> 
+    mutate(
+      source = "insightly_group_16"
+    ),
   manual_cleaning_insightly_2022_group15_cleaned <- readxl::read_excel(
     here::here(
       "output", 
       "20230215_manual_gpt_3_output_cleaning_insightly_2022_group15_chris.xlsx"
     )
+  ) |> 
+  mutate(
+    source = "insightly_group_15"
   )
 )
 
-manual_cleaning_insightly_parsed <- gpt_output_parser(insightly_compiled_groups_cleaned) 
+manual_cleaning_insightly_parsed <- gpt_output_parser(insightly_compiled_groups_cleaned) |> 
+  select(everything(), source)
 
 
-# Save cleaned and parsed data --------------------------------------------
+
+# Combine all parsed data into 1 df ---------------------------------------
+
 
 compiled_parsed_output <- bind_rows(
   manual_cleaning_parsed, # add data from emails up until 2022-02-11
@@ -210,6 +253,13 @@ compiled_parsed_output <- bind_rows(
   tidylog::filter(
     !str_detect(result_manual, "^Error|NULL")
   ) 
+
+# Save cleaned and parsed data 
+# write_rds(compiled_parsed_output, here::here("data", str_c(BAutils::dater(Sys.Date()), "_compiled_parsed_output.rds")))
+
+
+
+# Do some extra checking on compiled set ----------------------------------
 
 # A number of call to the OpenAI api didn't work (error 500, 503, 429 and NULLS)
 # If I find the time, retry these rows once more. 
@@ -222,9 +272,22 @@ bounced_api_calls <- bind_rows(
   ) |> 
   pull(result_manual)
 
+# A number of rows seem to be misaligned -> values in wrong columns
+
+misaligned <- compiled_parsed_output |> 
+  filter(
+    is.na(job_duration) |
+      is.na(hourly_rate) |
+      !is.na(extra1) |
+      !is.na(extra2) |
+      !is.na(extra3) |
+      !is.na(extra4) | 
+      !is.na(extra5)
+  ) |> 
+  select(id, source, job_title:job_duration, hourly_rate, extra1:extra5)
 
 
-# write_rds(compiled_parsed_output, here::here("data", str_c(BAutils::dater(Sys.Date()), "_compiled_parsed_output.rds")))
+
 
 
 # Old -------------------------------------------
