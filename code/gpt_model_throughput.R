@@ -130,6 +130,30 @@ parse_davinci <- function(input) {
 # tictoc::toc()
 # beepr::beep()
 
+# tictoc::tic()
+# insightly_parsed_2020_group11 <- insightly_year[[11]] |>
+#   mutate(
+#     gpt_3 = map(
+#       .f = safely(parse_davinci),
+#       .x = Details,
+#       .progress = T
+#     )
+#   )
+# tictoc::toc()
+# beepr::beep()
+
+# tictoc::tic()
+# insightly_parsed_2020_group10 <- insightly_year[[10]] |>
+#   mutate(
+#     gpt_3 = map(
+#       .f = safely(parse_davinci),
+#       .x = Details,
+#       .progress = T
+#     )
+#   )
+# tictoc::toc()
+# beepr::beep()
+# 
 
 # Saved test data to disk to manipulate later. 
 # First try with a sample set
@@ -149,4 +173,10 @@ parse_davinci <- function(input) {
 
 # sixth try with partial set of data (namely group 12 - see Get_insightly_data.R for further details). This was on 2023-02-17
 # write_rds(insightly_parsed_2021_group12, here::here("data", str_c(BAutils::dater(Sys.Date()), "_test_function_2021_group12.rds")))
+
+# seventh try with partial set of data (namely group 11 - see Get_insightly_data.R for further details). This was on 2023-02-20
+# write_rds(insightly_parsed_2020_group11, here::here("data", str_c(BAutils::dater(Sys.Date()), "_test_function_2020_group11.rds")))
+
+# seventh try with partial set of data (namely group 11 - see Get_insightly_data.R for further details). This was on 2023-02-20
+# write_rds(insightly_parsed_2020_group10, here::here("data", str_c(BAutils::dater(Sys.Date()), "_test_function_2020_group10.rds")))
 
