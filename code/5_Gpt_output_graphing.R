@@ -1,6 +1,5 @@
 library(tidyverse)
 
-
 # Get data ----------------------------------------------------------------
 
 latest_compiled_parsed_set <- fs::dir_ls(here::here("data"), regexp = "_compiled_parsed_output.rds$") |> 
@@ -96,7 +95,7 @@ compiled_parsed_output |>
     broker = fct_lump(broker, n = 15, other_level = "Anders"),
     hours_derived = fct_lump(hours_derived, n = 6, other_level = "Anders")
   ) |> 
-  pivot_longer(cols = 2:ncol(simple_cats)) |> 
+  pivot_longer(cols = 2:9) |> 
   count(name, value) |> 
   #na.omit() |> 
   ggplot(aes(y = tidytext::reorder_within(x = value, by = n, within = name), x = n)) +
