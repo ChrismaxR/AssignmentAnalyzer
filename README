@@ -1,12 +1,23 @@
-########### 10-02-2023 #####################
+
+    ___                                                   ___                __              
+   /   | ____ _____ _   ___________ _____ ____  ____     /   |  ____  ____ _/ /_  __________ 
+  / /| |/ __ `/ __ \ | / / ___/ __ `/ __ `/ _ \/ __ \   / /| | / __ \/ __ `/ / / / / ___/ _ \
+ / ___ / /_/ / / / / |/ / /  / /_/ / /_/ /  __/ / / /  / ___ |/ / / / /_/ / / /_/ (__  )  __/
+/_/  |_\__,_/_/ /_/|___/_/   \__,_/\__, /\___/_/ /_/  /_/  |_/_/ /_/\__,_/_/\__, /____/\___/ 
+                                  /____/                                   /____/            
+
+########### 27-02-2023 #####################
+
+Deze repo bevat alle code die ik heb gebruikt om een set van aanvragen te analyseren
+voor mijn presentatie op 23 februari jl.
 
 Belangrijkste scripts:
-Get_email_corpus.R -> gmail API gebruiken om mails in te lezen
-Get_insightly_data.R -> oude emails uit insightly (via handmatige export) inladen en klaarzetten voor gpt-3 api
-Clean_email_corpus.R -> script om de email teksten op te schonen
-gpt_model_throughput.R -> script om teksten te parsen in gpt_3
-gpt_model_output.R -> output van de gpt-3 calls parsen en opschonen
-
+1a_Get_email_corpus.R -> gmail API gebruiken om mails in te lezen
+1b_Get_insightly_data.R -> oude emails uit insightly (via handmatige export) inladen en klaarzetten voor gpt-3 api
+2_Clean_email_corpus.R -> script om de email teksten op te schonen
+3_Gpt_model_throughput.R -> script om teksten te parsen in gpt_3
+4_Gpt_model_output.R -> output van de gpt-3 calls parsen en opschonen
+5_Gpt_model_graphing.R -> script om visualisatie te genereren die ik in mijn presentatie heb gebruikt. 
 
 Oude/test scripts:
 email_analysis.R -> oud script om email data op te schonen
