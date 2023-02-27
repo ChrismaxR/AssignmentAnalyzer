@@ -292,81 +292,29 @@ manual_cleaning_parsed <- gpt_output_parser(manual_cleaning_cleaned) |>
 
 # Ingest manually cleaned data --------------------------------------------
 
-
-# Get the manually cleaned Insightly data
-insightly_compiled_groups_cleaned <- bind_rows(
-  manual_cleaning_insightly_2022_group16_cleaned <- readxl::read_excel(
-    here::here(
-      "output", 
-      "20230213_manual_gpt_3_output_cleaning_insightly_2022_group16_chris.xlsx"
-    ) 
-  ) |> 
+cleaned_file_reader <- function(file_path) {
+  
+  readxl::read_excel(file_path) |> 
     mutate(
-      source = "insightly_group_16"
-    ),
-  manual_cleaning_insightly_2021_group15_cleaned <- readxl::read_excel(
-    here::here(
-      "output", 
-      "20230215_manual_gpt_3_output_cleaning_insightly_2022_group15_chris.xlsx"
+      source = basename(file_path)
     )
-  ) |> 
-  mutate(
-    source = "insightly_group_15"
-  ),
-  manual_cleaning_insightly_2021_group14_cleaned <- readxl::read_excel(
-    here::here(
-      "output", 
-      "20230217_manual_gpt_3_output_cleaning_insightly_2022_group14_chris.xlsx"
-    )
-  ) |> 
-  mutate(
-    source = "insightly_group_14"
-  ),
-  manual_cleaning_insightly_2022_group13_cleaned <- readxl::read_excel(
-    here::here(
-      "output", 
-      "20230217_manual_gpt_3_output_cleaning_insightly_2022_group13_chris.xlsx"
-    )
-  ) |> 
-  mutate(
-    source = "insightly_group_13"
-  ),
-  manual_cleaning_insightly_2021_group12_cleaned <- readxl::read_excel(
-    here::here(
-      "output", 
-      "20230217_manual_gpt_3_output_cleaning_insightly_2022_group12_chris.xlsx"
-    )
-  ) |> 
-  mutate(
-    source = "insightly_group_12"
-  ),
-  manual_cleaning_insightly_2021_group12_cleaned <- readxl::read_excel(
-    here::here(
-      "output", 
-      "20230220_manual_gpt_3_output_cleaning_insightly_2020_group11_chris.xlsx"
-    )
-  ) |> 
-  mutate(
-    source = "insightly_group_11"
-  ),
-  manual_cleaning_insightly_2021_group12_cleaned <- readxl::read_excel(
-    here::here(
-      "output", 
-      "20230220_manual_gpt_3_output_cleaning_insightly_2020_group10_chris.xlsx"
-    )
-  ) |> 
-  mutate(
-    source = "insightly_group_10"
-  )
+  
+}
+
+manually_cleaned_file_paths <- fs::dir_ls(
+  path = here::here("output"), 
+  regexp = "[0-9]{2,}_chris.xlsx$"
+)
+
+insightly_compiled_groups_cleaned <- map_df(
+  .x = manually_cleaned_file_paths,
+  .f = cleaned_file_reader
 )
 
 manual_cleaning_insightly_parsed <- gpt_output_parser(insightly_compiled_groups_cleaned) |> 
   select(everything(), source)
 
-
-
 # Combine all parsed data into 1 df ---------------------------------------
-
 
 compiled_parsed_output <- bind_rows(
   manual_cleaning_parsed, # add data from emails up until 2022-02-11

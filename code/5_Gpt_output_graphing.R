@@ -20,7 +20,8 @@ compiled_parsed_output <- read_rds(latest_compiled_parsed_set) |>
   ) |> 
   select(-extracted_email, -extracted_broker, -broker_in_organisation)
 
-# Share data
+
+# Output share file -------------------------------------------------------
 
 share_file <- compiled_parsed_output |> 
   transmute(
